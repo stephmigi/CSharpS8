@@ -35,26 +35,6 @@ namespace Intech.Business.Tests
                                                                    "Intech.Business.Tests",
                                                                    "TestSupport" ) ))
                             ?? new DirectoryInfo( "" );
-
-                return _testSupportFolder != null 
-                            ? _testSupportFolder
-                            : (_testSupportFolder = new DirectoryInfo(
-                                   Path.Combine(
-                                       SolutionFolder.FullName,
-                                       "Intech.Business.Tests",
-                                       "TestSupport" ) ) );
-
-
-                if( _testSupportFolder == null )
-                {
-
-                    _testSupportFolder = new DirectoryInfo(
-                                   Path.Combine(
-                                       SolutionFolder.FullName,
-                                       "Intech.Business.Tests",
-                                       "TestSupport" ) );
-                }
-                return _testSupportFolder;
             }
         }
 

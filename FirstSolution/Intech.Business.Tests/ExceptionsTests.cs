@@ -79,13 +79,14 @@ namespace Intech.Business.Tests
         [Test]
         public void ParseIntPerformanceTest()
         {
-            string stringToParse = "kzejgopzejgpozegpoze";
+            string incorrect = "kzejgopzejgpozegpoze";
+            string correct = "100";
 
-            long normalWithExceptions = PerformParseTest("100", ParseIntWithExceptions);
-            long normalWithOutExceptions = PerformParseTest("100", ParseIntWithoutExceptions);
+            long normalWithExceptions = PerformParseTest(correct, ParseIntWithExceptions);
+            long normalWithOutExceptions = PerformParseTest(correct, ParseIntWithoutExceptions);
 
-            long exceptionWithExceptions = PerformParseTest(stringToParse, ParseIntWithExceptions);
-            long exceptionWithOutExceptions = PerformParseTest(stringToParse, ParseIntWithoutExceptions);
+            long exceptionWithExceptions = PerformParseTest(incorrect, ParseIntWithExceptions);
+            long exceptionWithOutExceptions = PerformParseTest(incorrect, ParseIntWithoutExceptions);
 
             Console.WriteLine("Normal case : ");
             Console.WriteLine("Parse with exceptions case : " + normalWithExceptions);
@@ -100,37 +101,40 @@ namespace Intech.Business.Tests
 
         private const int NB_LOOPS = 100;
 
-        private long PerformParseTest(string stringToParse, Func<Stopwatch, int, string, long> parseMethod)
+        private long PerformParseTest(string stringToParse, Action<string> parseMethod)
         {
-            return parseMethod(new Stopwatch(), NB_LOOPS, stringToParse);
+            return TimeFunctionExecution(NB_LOOPS, stringToParse, parseMethod);
         }
 
-        private long ParseIntWithExceptions(Stopwatch w, int loops, string stringToParse)
+        private void ParseIntWithExceptions(string toParse)
         {
+            try
+            {
+                int result = Int32.Parse(toParse);
+            }
+            catch { }
+        }
+
+        private void ParseIntWithoutExceptions(string toParse)
+        {
+            int result;
+            Int32.TryParse(toParse, out result);
+        }
+
+        private long TimeFunctionExecution(int loops, string toParse, Action<string> parseMethod)
+        {
+            Stopwatch w = new Stopwatch();
             w.Start();
+
             for (int i = 0; i < loops; ++i)
             {
-                try
-                {
-                    int result = Int32.Parse(stringToParse);
-                }
-                catch { }
+                parseMethod(toParse);
             }
+
             w.Stop();
             return w.ElapsedTicks;
         }
 
-        private long ParseIntWithoutExceptions(Stopwatch w, int loops, string stringToParse)
-        {
-            w.Start();
-            for (int i = 0; i < loops; ++i)
-            {
-                int result;
-                Int32.TryParse(stringToParse, out result);
-            }
-            w.Stop();
-            return w.ElapsedTicks;
-        }
         #endregion
 
         #region String builder complexity & performance test

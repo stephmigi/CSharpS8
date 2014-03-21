@@ -70,7 +70,14 @@ namespace Intech.Business
             {
                 get
                 {
-                    return _list[_currentIndex];
+                    // use _list._array instead of list because  
+                    // this is an implementation 
+                    if (_currentIndex < 0)
+                        throw new InvalidOperationException("Movenext must be called first");
+
+                    if (_currentIndex >= _list._count)
+                        throw new InvalidOperationException("Can't call current if Movenext returned false");
+                    return _list._array[_currentIndex];
                 }
             }
 
@@ -81,7 +88,10 @@ namespace Intech.Business
 
             object IEnumerator.Current
             {
-                get { throw new NotImplementedException(); }
+                get 
+                {
+                    return Current;
+                }
             }
 
             public bool MoveNext()
@@ -93,7 +103,7 @@ namespace Intech.Business
 
             public void Reset()
             {
-                _currentIndex = -1;
+                throw new NotSupportedException();
             }
         }
 

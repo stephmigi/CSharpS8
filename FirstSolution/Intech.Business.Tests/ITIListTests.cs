@@ -39,6 +39,9 @@ namespace Intech.Business.Tests
         {
             ITIList<int> list = new ITIList<int>();
 
+            // movenext has not been called yet, current is negative => exception
+            Assert.That(() => list.GetEnumerator().Current, Throws.Exception.TypeOf<InvalidOperationException>());
+
             //test empty list
             Assert.That(list.GetEnumerator().MoveNext(), Is.False);
 
@@ -50,6 +53,9 @@ namespace Intech.Business.Tests
                sum += element;
 
            Assert.That(sum, Is.EqualTo(3));
+
+            // movenext will return false because end of list has been reached
+           Assert.That(() => list.GetEnumerator().Current, Throws.Exception.TypeOf<InvalidOperationException>());
         }
     }
 }

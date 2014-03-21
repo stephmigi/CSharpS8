@@ -34,5 +34,22 @@ namespace Intech.Business.Tests
             Assert.That( myList.Count, Is.EqualTo( 0 ) );
         }
 
+        [Test]
+        public void TraverseItems()
+        {
+            ITIList<int> list = new ITIList<int>();
+
+            //test empty list
+            Assert.That(list.GetEnumerator().MoveNext(), Is.False);
+
+            int sum = 0;
+            list.Add(1);
+            list.Add(2);
+
+           foreach (var element in list)
+               sum += element;
+
+           Assert.That(sum, Is.EqualTo(3));
+        }
     }
 }

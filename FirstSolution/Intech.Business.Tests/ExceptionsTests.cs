@@ -101,11 +101,22 @@ namespace Intech.Business.Tests
 
         private const int NB_LOOPS = 100;
 
+        /// <summary>
+        /// Performs a parse test on a string with a given parsing method
+        /// The test is executed NB_LOOPS times
+        /// </summary>
+        /// <param name="stringToParse">the string to parse</param>
+        /// <param name="parseMethod">the method to use</param>
+        /// <returns>The test's execution time in ticks</returns>
         private long PerformParseTest(string stringToParse, Action<string> parseMethod)
         {
-            return TimeFunctionExecution(NB_LOOPS, stringToParse, parseMethod);
+            return TimeFunctionExecution(NB_LOOPS, () => parseMethod(stringToParse) );
         }
 
+        /// <summary>
+        /// Parses a string with Int32.Parse
+        /// </summary>
+        /// <param name="toParse">String to parse</param>
         private void ParseIntWithExceptions(string toParse)
         {
             try
@@ -115,20 +126,31 @@ namespace Intech.Business.Tests
             catch { }
         }
 
+        /// <summary>
+        /// Parse a string with Int32.TryParse
+        /// </summary>
+        /// <param name="toParse">String to parse</param>
         private void ParseIntWithoutExceptions(string toParse)
         {
             int result;
             Int32.TryParse(toParse, out result);
         }
 
-        private long TimeFunctionExecution(int loops, string toParse, Action<string> parseMethod)
+        /// <summary>
+        /// Counts the time in ticks of a function's execution
+        /// executed n times
+        /// </summary>
+        /// <param name="loops">Number of times the method is executed</param>
+        /// <param name="method">Method to be executed</param>
+        /// <returns>Total executing time in ticks</returns>
+        private long TimeFunctionExecution(int loops, Action method)
         {
             Stopwatch w = new Stopwatch();
             w.Start();
 
             for (int i = 0; i < loops; ++i)
             {
-                parseMethod(toParse);
+                method();
             }
 
             w.Stop();

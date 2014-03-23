@@ -16,8 +16,9 @@ namespace Intech.Business.Tests
         [Test]
         public void SimpleScenario()
         {
-            bool anExceptionHasBeenCaught = false; ;
+            bool anExceptionHasBeenCaught = false;
             _secondMethodHasBeenCalled = false;
+
             try
             {
                 ContainerMethod();
@@ -33,11 +34,15 @@ namespace Intech.Business.Tests
                 Assert.That(ex, Is.Not.Null);
                 anExceptionHasBeenCaught = true;
             }
+            // code can pass through here because an exception of
+            // another type could have been caught
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 Assert.Fail("Code should never pass through here.");
             }
+            // call this code wether an exception has been 
+            // caught or not
             finally
             {
                 Assert.That(_secondMethodHasBeenCalled, Is.False);
@@ -102,7 +107,8 @@ namespace Intech.Business.Tests
         private const int NB_LOOPS = 100;
 
         /// <summary>
-        /// Performs a parse test on a string with a given parsing method
+        /// Measures the time taken to perform a parse test 
+        /// on a string with a given parsing method
         /// The test is executed NB_LOOPS times
         /// </summary>
         /// <param name="stringToParse">the string to parse</param>
@@ -110,7 +116,7 @@ namespace Intech.Business.Tests
         /// <returns>The test's execution time in ticks</returns>
         private long PerformParseTest(string stringToParse, Action<string> parseMethod)
         {
-            return TimeFunctionExecution(NB_LOOPS, () => parseMethod(stringToParse) );
+            return TestHelpers.TimeFunctionExecution(NB_LOOPS, () => parseMethod(stringToParse) );
         }
 
         /// <summary>
@@ -136,60 +142,47 @@ namespace Intech.Business.Tests
             Int32.TryParse(toParse, out result);
         }
 
-        /// <summary>
-        /// Counts the time in ticks of a function's execution
-        /// executed n times
-        /// </summary>
-        /// <param name="loops">Number of times the method is executed</param>
-        /// <param name="method">Method to be executed</param>
-        /// <returns>Total executing time in ticks</returns>
-        private long TimeFunctionExecution(int loops, Action method)
-        {
-            Stopwatch w = new Stopwatch();
-            w.Start();
-
-            for (int i = 0; i < loops; ++i)
-            {
-                method();
-            }
-
-            w.Stop();
-            return w.ElapsedTicks;
-        }
-
         #endregion
 
         #region String builder complexity & performance test
 
+        // Compare a "naive" string build (with concatenation) with a 
+        // "better" String build (with a string builder)
         [Test]
         public void BuildStringPerformanceTest()
         {
-            int testRepetition = 1000;
+            //number of times pattern is appended
             int count = 1000;
             string pattern = "abcd";
-            var sw = new Stopwatch();
 
-            long naiveStringBuildTime = PerformNaiveStringBuild(testRepetition, count, pattern, sw);
-            long betterStringBuildTime = PerformBetterStringBuild(testRepetition, count, pattern, sw);
+            // number of times test is run
+            int testRepetition = 1000;
+
+            long naiveStringBuildTime = PerformStringBuild(BuildNaiveString, testRepetition, count, pattern);
+            long betterStringBuildTime = PerformStringBuild(BuildBetterString, testRepetition, count, pattern);
 
             Console.WriteLine("Naive build string time : " + naiveStringBuildTime);
             Console.WriteLine("Better build string time : " + betterStringBuildTime);
             Console.WriteLine("Ratio : " + naiveStringBuildTime / betterStringBuildTime);
         }
 
+
         [Test]
         public void BuildStringComplexityTest()
         {
-            int testRepetition = 0;
-            int count = 100;
+            int count = 1000;
             string pattern = "abcd";
-            var sw = new Stopwatch();
 
-            while (testRepetition < 10000)
+            // run test multiple times 500 times, then 1000, then 2000... to see 
+            // the data evolution
+            int testRepetition = 0;
+            while (testRepetition < 3000)
             {
-                testRepetition += 100;
-                long naiveStringBuildTime = PerformNaiveStringBuild(testRepetition, count, pattern, sw);
-                long betterStringBuildTime = PerformBetterStringBuild(testRepetition, count, pattern, sw);
+                testRepetition += 500;
+
+                long naiveStringBuildTime = PerformStringBuild(BuildNaiveString, testRepetition, count, pattern);
+                long betterStringBuildTime = PerformStringBuild(BuildBetterString, testRepetition, count, pattern);
+
                 Console.WriteLine("n = {0}, Naive : {1}, Better : {2}", 
                     testRepetition, 
                     naiveStringBuildTime, 
@@ -197,33 +190,25 @@ namespace Intech.Business.Tests
             } 
         }
 
-        private long PerformBetterStringBuild(int testCount, int count, string pattern, Stopwatch sw)
+        /// <summary>
+        /// Measure the time taken to build a string 
+        /// </summary>
+        /// <param name="buildingMethod">A building function to use</param>
+        /// <param name="testCount">Number of times the test has to be executed</param>
+        /// <param name="count">Number of times the pattern has to be appended</param>
+        /// <param name="pattern">The pattern used</param>
+        /// <returns>The elapsed time in ticks</returns>
+        private long PerformStringBuild(Func<string, int, string> buildingMethod, int testCount, int count, string pattern)
         {
-            sw.Restart();
-            sw.Start();
-
-            for (int i = 0; i < testCount; i++)
-            {
-                BuildBetterString(pattern, count);
-            }
-            sw.Stop();
-
-            return sw.ElapsedTicks;
+            return TestHelpers.TimeFunctionExecution(testCount, () => buildingMethod(pattern, count));
         }
 
-        private long PerformNaiveStringBuild(int testCount, int count, string pattern, Stopwatch sw)
-        {
-            sw.Restart();
-            sw.Start();
-            for (int i = 0; i < testCount; i++)
-            {
-                BuildNaiveString(pattern, count);
-            }
-            sw.Stop();
-
-            return sw.ElapsedTicks;
-        }
-
+        /// <summary>
+        /// Build a string with simple concatenation
+        /// </summary>
+        /// <param name="pattern">The pattern to append</param>
+        /// <param name="count">The number of times to append the pattern</param>
+        /// <returns>The newly built string</returns>
         private string BuildNaiveString(string pattern, int count)
         {
             string s = string.Empty;
@@ -234,6 +219,12 @@ namespace Intech.Business.Tests
             return s;
         }
 
+        /// <summary>
+        /// Build a new string with a StringBuilder
+        /// </summary>
+        /// <param name="pattern">The pattern to append</param>
+        /// <param name="count">The number of times to append the pattern</param>
+        /// <returns>The newly built string</returns>
         private string BuildBetterString(string pattern, int count)
         {
             StringBuilder sb = new StringBuilder();

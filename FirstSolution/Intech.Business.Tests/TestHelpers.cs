@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -7,8 +8,11 @@ using System.Threading.Tasks;
 
 namespace Intech.Business.Tests
 {
-    class TestHelpers
+    public class TestHelpers
     {
+
+        #region properties
+
         private static DirectoryInfo _solutionFolder;
         public static DirectoryInfo SolutionFolder
         {
@@ -40,5 +44,32 @@ namespace Intech.Business.Tests
                 return _testSupportFolder;
             }
         }
+
+        #endregion
+
+        #region methods 
+
+        /// <summary>
+        /// Counts the time in ticks of a function's execution
+        /// executed n times.
+        /// </summary>
+        /// <param name="loops">Number of times the method is executed</param>
+        /// <param name="method">Method to be executed</param>
+        /// <returns>Total executing time in ticks</returns>
+        public static long TimeFunctionExecution(int loops, Action method)
+        {
+            Stopwatch w = new Stopwatch();
+            w.Start();
+
+            for (int i = 0; i < loops; ++i)
+            {
+                method();
+            }
+
+            w.Stop();
+            return w.ElapsedTicks;
+        }
+
+        #endregion
     }
 }

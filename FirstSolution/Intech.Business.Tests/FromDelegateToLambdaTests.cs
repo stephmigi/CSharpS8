@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Intech.Business.Tests
 {
-    public class FromDelegateToLambda
+    public class FromDelegateToLambdaTests
     {
         [Test]
         public void DelegateUsageTest()

@@ -27,7 +27,7 @@ namespace Intech.Business.Tests
         [Test]
         public void WhereAmI()
         {
-            DirectoryInfo s = TestHelper.SolutionFolder;
+            DirectoryInfo s = TestHelpers.SolutionFolder;
             Assert.That( s.Exists );
         }
 

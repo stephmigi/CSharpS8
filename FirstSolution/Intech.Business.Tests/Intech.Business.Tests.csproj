@@ -45,10 +45,11 @@
     <Compile Include="ExceptionsTests.cs" />
     <Compile Include="FileProcessorTests.cs" />
     <Compile Include="FirstStupidTests.cs" />
+    <Compile Include="FirstUnitTest.cs" />
     <Compile Include="FromDelegateToLambda.cs" />
     <Compile Include="ITIListTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestHelper.cs" />
+    <Compile Include="TestHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Intech.Business\Intech.Business.csproj">

@@ -8,74 +8,63 @@ namespace Intech.Business
 {
     public class FileProcessor
     {
-        public FileProcessorResult Process( string path )
+        /// <summary> Processes a given directory </summary>
+        /// <param name = "path">The directory's path</param>
+        /// <param name = "hasHiddenParent">True if current directory has a hidden parent</param>
+        public FileProcessorResult Process (string path)
         {
-            var r = new FileProcessorResult( path );
-            DirectoryInfo d = new DirectoryInfo( path );
-            if( d.Exists )
+            FileProcessorResult processorResult = new FileProcessorResult(path);
+
+            if (new DirectoryInfo(path).Exists)
             {
-                Process( d, r, false );
-            }
-            return r;
+                ProcessDirectory(path, processorResult, false);
+                processorResult.ProcessingDate = DateTime.UtcNow;
+            } 
+
+            return processorResult;
         }
 
-        void Process( DirectoryInfo d, FileProcessorResult r, bool isParentHidden )
+        /// <summary> Processes a given directory </summary>
+        /// <param name = "path">The directory's path</param>
+        /// <param name = "hasHiddenParent">True if current directory has a hidden parent</param>
+        private void ProcessDirectory(string path, FileProcessorResult result, bool hasHiddenParent)
         {
-            ++r.TotalDirectoryCount;
-            bool thisDirectoryIsHidden = (d.Attributes & FileAttributes.Hidden) != 0;
-            if( thisDirectoryIsHidden )
+            // get files and directories in current directories
+            var directoryPaths = Directory.GetDirectories(path);
+            string[] filePaths = Directory.GetFiles(path);
+
+            // current directory is part of the total count of directories !
+            result.TotalDirectoryCount++;
+            
+            // check if current directory is hidden
+            if (FileHelpers.IsFileOrDirectoryHidden(new DirectoryInfo(path).Attributes))
             {
-                ++r.HiddenDirectoryCount;
-            }
-            IEnumerable<FileInfo> files = d.EnumerateFiles();
-            IEnumerator<FileInfo> enumerator = files.GetEnumerator();
-            try
-            {
-                while( enumerator.MoveNext() )
-                {
-                    FileInfo file = enumerator.Current;
-                    ++r.TotalFileCount;
-                    FileAttributes attrs = file.Attributes;
-                    bool isHidden = (attrs & FileAttributes.Hidden) != 0;
-                    if( isHidden )
-                    {
-                        ++r.HiddenFileCount;
-                    }
-                    if( isHidden || isParentHidden || thisDirectoryIsHidden )
-                    {
-                        ++r.UnaccessibleFileCount;
-                    }
-                    #region Side notes on bit flags
-                    {
-                        bool isArchive = (attrs & FileAttributes.Archive) != 0;
-
-                        bool isArchiveOrHidden = (attrs & (FileAttributes.Archive | FileAttributes.Hidden)) != 0;
-
-                        bool isArchiveAndHidden = (attrs & (FileAttributes.Archive | FileAttributes.Hidden))
-                                                            == (FileAttributes.Archive | FileAttributes.Hidden);
-
-                        // An enum, by default, is based on an Int32.
-                        int x = (int)attrs;
-                        isHidden = (x & 2) != 0;
-                        // But we can define 
-                        // enum Choucroute : byte { }
-                        // to be based on a single byte.
-                    }
-                    #endregion
-
-                }
-            }
-            finally
-            {
-                enumerator.Dispose();
+                result.TotalHiddenDirectoryCount++;
+                hasHiddenParent = true;
             }
 
-            // This code is the same as the previous one (try/finally/while...)
-            foreach( var subDir in d.EnumerateDirectories() )
-            {
-                Process( subDir, r, isParentHidden || thisDirectoryIsHidden );
-            }
+            // process files
+            foreach (string filePath in filePaths)
+                ProcessFile(filePath, result, hasHiddenParent);
 
+            // process subdirectories
+            foreach (string directory in directoryPaths)
+                ProcessDirectory(directory, result, hasHiddenParent);
+        }
+
+        /// <summary> Processes a file </summary>
+        /// <param name = "filePath">The file's path</param>
+        /// <param name = "hasHiddenParent">True if a directory in the file's path is hidden</param>
+        private void ProcessFile(string filePath, FileProcessorResult result, bool hasHiddenParent)
+        {
+            bool isFileHidden = FileHelpers.IsFileOrDirectoryHidden(File.GetAttributes(filePath));
+
+            result.TotalFileCount++;
+            if (isFileHidden)
+                result.TotalHiddenFileCount++;
+
+            if (isFileHidden || hasHiddenParent)
+                result.TotalUnaccessibleFileCount++;
         }
     }
 }

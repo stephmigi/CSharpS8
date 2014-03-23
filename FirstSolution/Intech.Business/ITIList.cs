@@ -54,6 +54,28 @@ namespace Intech.Business
             _array[--_count] = default( T );
         }
 
+        public void InsertAt(int index, T value)
+        {
+            if (index < 0 || index > _count) throw new IndexOutOfRangeException();
+
+            var newOne = _array.Length == _count ? new T[_array.Length * 2] : new T[_array.Length]; 
+            Array.Copy(_array, 0, newOne, 0, index);
+            newOne[index] = value;
+            Array.Copy(_array, index, newOne, index + 1, _count - index);
+            _array = newOne;
+            _count++;
+        }
+
+        public int IndexOf(T element)
+        {
+            for (int i = 0; i < _count; i++)
+            {
+                if (_array[i].Equals(element))
+                    return i;
+            }
+            return -1;
+        }
+
         //This is a nested type
         class E : IEnumerator<T>
         {
@@ -86,6 +108,7 @@ namespace Intech.Business
                 //nothing to do
             }
 
+            //implement old version of current
             object IEnumerator.Current
             {
                 get 

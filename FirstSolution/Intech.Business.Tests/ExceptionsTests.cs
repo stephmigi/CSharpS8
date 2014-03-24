@@ -86,12 +86,13 @@ namespace Intech.Business.Tests
         {
             string incorrect = "kzejgopzejgpozegpoze";
             string correct = "100";
+            int timesToExecute = 100;
 
-            long normalWithExceptions = PerformParseTest(correct, ParseIntWithExceptions);
-            long normalWithOutExceptions = PerformParseTest(correct, ParseIntWithoutExceptions);
+            long normalWithExceptions = PerformParseTest(correct, timesToExecute, ParseIntWithExceptions);
+            long normalWithOutExceptions = PerformParseTest(correct, timesToExecute, ParseIntWithoutExceptions);
 
-            long exceptionWithExceptions = PerformParseTest(incorrect, ParseIntWithExceptions);
-            long exceptionWithOutExceptions = PerformParseTest(incorrect, ParseIntWithoutExceptions);
+            long exceptionWithExceptions = PerformParseTest(incorrect, timesToExecute, ParseIntWithExceptions);
+            long exceptionWithOutExceptions = PerformParseTest(incorrect, timesToExecute, ParseIntWithoutExceptions);
 
             Console.WriteLine("Normal case : ");
             Console.WriteLine("Parse with exceptions case : " + normalWithExceptions);
@@ -104,19 +105,18 @@ namespace Intech.Business.Tests
             Console.WriteLine("Ratio : " + exceptionWithExceptions / exceptionWithOutExceptions);
         }
 
-        private const int NB_LOOPS = 100;
-
         /// <summary>
         /// Measures the time taken to perform a parse test 
         /// on a string with a given parsing method
-        /// The test is executed NB_LOOPS times
+        /// The test is executed timesToExecute times
         /// </summary>
         /// <param name="stringToParse">the string to parse</param>
+        /// /// <param name="timesToExecute">number of times test will be executed</param>
         /// <param name="parseMethod">the method to use</param>
         /// <returns>The test's execution time in ticks</returns>
-        private long PerformParseTest(string stringToParse, Action<string> parseMethod)
+        private long PerformParseTest(string stringToParse, int timesToExecute, Action<string> parseMethod)
         {
-            return TestHelpers.TimeFunctionExecution(NB_LOOPS, () => parseMethod(stringToParse) );
+            return TestHelpers.TimeFunctionExecution(timesToExecute, () => parseMethod(stringToParse));
         }
 
         /// <summary>

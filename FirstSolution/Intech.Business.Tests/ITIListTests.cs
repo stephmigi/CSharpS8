@@ -10,56 +10,33 @@ namespace Intech.Business.Tests
     [TestFixture]
     public class ITIListTests
     {
+        #region General
+
         [Test]
-        public void Basics()
+        public void ITIList_CountEmptyList()
         {
             ITIList<int> myList = new ITIList<int>();
-            ITIList<string> myList2 = new ITIList<string>();
-            var myList3 = new ITIList<ITIList<string>>();
+
+            Assert.That(myList.Count, Is.EqualTo(0));
         }
 
+        #endregion
+
+        #region Adding
         [Test]
-        public void AddingItems()
+        public void ITIList_AddAnItem()
         {
-            // Arrange
             ITIList<int> myList = new ITIList<int>();
-            Assert.That( myList.Count, Is.EqualTo( 0 ) );
-            // Act
-            myList.Add( 25 );
-            // Assert
-            Assert.That( myList.Count, Is.EqualTo( 1 ) );
-            Assert.That( myList[0], Is.InstanceOf( typeof( int ) ) );
-            Assert.That( myList[0], Is.EqualTo( 25 ) );
-            myList.RemoveAt( 0 );
-            Assert.That( myList.Count, Is.EqualTo( 0 ) );
+
+            myList.Add(25);
+
+            Assert.That(myList.Count, Is.EqualTo(1));
+            Assert.That(myList[0], Is.InstanceOf(typeof(int)));
+            Assert.That(myList[0], Is.EqualTo(25));
         }
 
         [Test]
-        public void TraverseItems()
-        {
-            ITIList<int> list = new ITIList<int>();
-
-            // movenext has not been called yet, current is negative => exception
-            Assert.That(() => list.GetEnumerator().Current, Throws.Exception.TypeOf<InvalidOperationException>());
-
-            //test empty list
-            Assert.That(list.GetEnumerator().MoveNext(), Is.False);
-
-            int sum = 0;
-            list.Add(1);
-            list.Add(2);
-
-           foreach (var element in list)
-               sum += element;
-
-           Assert.That(sum, Is.EqualTo(3));
-
-            // movenext will return false because end of list has been reached
-           Assert.That(() => list.GetEnumerator().Current, Throws.Exception.TypeOf<InvalidOperationException>());
-        }
-
-        [Test]
-        public void TestInsertAt()
+        public void ITIList_InsertAt()
         {
             ITIList<string> list = new ITIList<string>();
 
@@ -91,7 +68,7 @@ namespace Intech.Business.Tests
             list.InsertAt(list.Count, "AAAAAAAAAAA");
             list.InsertAt(list.Count, "AAAAAAAAAAAA");
             list.InsertAt(list.Count, "!!!!!!!!!!!!!!");
-            
+
             Assert.That(list.Count, Is.EqualTo(10));
             Assert.That(list[9], Is.EqualTo("!!!!!!!!!!!!!!"));
 
@@ -102,26 +79,108 @@ namespace Intech.Business.Tests
             Assert.That(() => list.InsertAt(55, "test"), Throws.Exception.TypeOf<IndexOutOfRangeException>());
         }
 
+        #endregion
+
+        #region Removing
+
         [Test]
-        public void TestIndexOf()
+        public void ITIList_RemoveAt_RemoveAnItem()
+        {
+            ITIList<int> myList = new ITIList<int>();
+
+            myList.Add(25);
+            myList.RemoveAt(0);
+
+            Assert.That(myList.Count, Is.EqualTo(0));
+        }
+
+        #endregion
+
+        #region Traverse Items
+
+        [Test]
+        public void ITIList_TraverseItems_ExceptionOnGetCurrentOnEmptyList()
+        {
+            ITIList<int> list = new ITIList<int>();
+
+            // movenext has not been called yet, current is negative => exception
+            Assert.That(() => list.GetEnumerator().Current, Throws.Exception.TypeOf<InvalidOperationException>());
+        }
+
+        [Test]
+        public void ITIList_TraverseItems_ExceptionOnNoNextElementAtEndOfList()
+        {
+            ITIList<int> list = new ITIList<int>();
+
+            foreach (var element in list)
+                // do nothing
+
+            // end of list, movenext will throw an exception because there is not next element
+            Assert.That(() => list.GetEnumerator().Current, Throws.Exception.TypeOf<InvalidOperationException>());
+        }
+
+        [Test]
+        public void ITIList_TraverseItems_EmptyList()
+        {
+            ITIList<int> list = new ITIList<int>();
+
+            // movenext returns false because there is no next element
+            Assert.That(list.GetEnumerator().MoveNext(), Is.False);
+        }
+
+        [Test]
+        public void ITIList_TraverseItems()
+        {
+            ITIList<int> list = new ITIList<int>();
+
+            int sum = 0;
+            list.Add(1);
+            list.Add(2);
+
+           foreach (var element in list)
+               sum += element;
+
+           Assert.That(sum, Is.EqualTo(3));
+        }
+
+        #endregion
+
+        #region IndexOf
+
+        [Test]
+        public void ITIList_IndexOfOnEmptyList()
         {
             ITIList<string> list = new ITIList<string>();
 
             var index = list.IndexOf("test");
 
             Assert.That(index, Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void ITIList_IndexOfOnList()
+        {
+            ITIList<string> list = new ITIList<string>();
 
             list.Add("hello");
             list.Add("world");
 
-            index = list.IndexOf("hello");
+            int index = list.IndexOf("hello");
             Assert.That(index, Is.EqualTo(0));
+        }
 
-            index = list.IndexOf("world");
-            Assert.That(index, Is.EqualTo(1));
+        [Test]
+        public void ITIList_IndexOfInvalidElement()
+        {
+            ITIList<string> list = new ITIList<string>();
 
-            index = list.IndexOf("test again");
+            list.Add("hello");
+            list.Add("world");
+
+            var index = list.IndexOf("test");
             Assert.That(index, Is.EqualTo(-1));
         }
+
+        #endregion
     }
 }

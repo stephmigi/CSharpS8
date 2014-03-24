@@ -22,17 +22,6 @@ namespace Intech.Business
             get { return _count; }
         }
 
-        public void Add( T value )
-        {
-            if( _array.Length == _count )
-            {
-                var newOne = new T[ _array.Length * 2 ];
-                Array.Copy( _array, newOne, _array.Length );
-                _array = newOne;
-            }
-            _array[_count++] = value;
-        }
-
         public T this[int i]
         {
             get 
@@ -47,25 +36,12 @@ namespace Intech.Business
             }
         }
 
-        public void RemoveAt( int i )
-        {
-            if( i < 0 || i >= _count ) throw new IndexOutOfRangeException();
-            Array.Copy( _array, i + 1, _array, i, _count - (i+1) );
-            _array[--_count] = default( T );
-        }
-
-        public void InsertAt(int index, T value)
-        {
-            if (index < 0 || index > _count) throw new IndexOutOfRangeException();
-
-            var newOne = _array.Length == _count ? new T[_array.Length * 2] : new T[_array.Length]; 
-            Array.Copy(_array, 0, newOne, 0, index);
-            newOne[index] = value;
-            Array.Copy(_array, index, newOne, index + 1, _count - index);
-            _array = newOne;
-            _count++;
-        }
-
+        /// <summary>
+        /// Returns the index the first occurence
+        /// of a given element
+        /// </summary>
+        /// <param name="element">The element to look for</param>
+        /// <returns>The index of element if found, else -1</returns>
         public int IndexOf(T element)
         {
             for (int i = 0; i < _count; i++)
@@ -76,7 +52,62 @@ namespace Intech.Business
             return -1;
         }
 
-        //This is a nested type
+        /// <summary>
+        /// Add an element to the end of list
+        /// </summary>
+        /// <param name="value">Element to add</param>
+        public void Add(T value)
+        {
+            if (_array.Length == _count)
+            {
+                var newOne = new T[_array.Length * 2];
+                Array.Copy(_array, newOne, _array.Length);
+                _array = newOne;
+            }
+            _array[_count++] = value;
+        }
+
+        // todo : better way to implement insertAt?
+        /// <summary>
+        /// Insert an element at a given index
+        /// </summary>
+        /// <param name="index">The index at which element must be added</param>
+        /// <param name="value">The element to insert</param>
+        public void InsertAt(int index, T value)
+        {
+            if (index < 0 || index > _count) throw new IndexOutOfRangeException();
+
+            var newOne = _array.Length == _count ? new T[_array.Length * 2] : new T[_array.Length];
+            Array.Copy(_array, 0, newOne, 0, index);
+            newOne[index] = value;
+            Array.Copy(_array, index, newOne, index + 1, _count - index);
+            _array = newOne;
+            _count++;
+        }
+
+        /// <summary>
+        /// Removes the elemnt at given index
+        /// </summary>
+        /// <param name="index">The index of the element to delete</param>
+        public void RemoveAt( int index )
+        {
+            if (index < 0 || index >= _count) throw new IndexOutOfRangeException();
+            Array.Copy(_array, index + 1, _array, index, _count - (index + 1));
+            _array[--_count] = default( T );
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new E(this);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        // This is a nested type
+        // Custom enumerator implementation
         class E : IEnumerator<T>
         {
             readonly ITIList<T> _list;
@@ -111,7 +142,7 @@ namespace Intech.Business
             //implement old version of current
             object IEnumerator.Current
             {
-                get 
+                get
                 {
                     return Current;
                 }
@@ -130,14 +161,5 @@ namespace Intech.Business
             }
         }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return new E(this);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
     }
 }

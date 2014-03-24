@@ -85,12 +85,13 @@ namespace Intech.Business.Tests
 
         private TimeSpan DoSomething(int counter)
         {
+            // do something
             return TimeSpan.Zero;
         }
 
         private TimeSpan DoSomethingElse(int counter)
         {
-            //code
+            // do something else
             return TimeSpan.Zero;
         }
     }

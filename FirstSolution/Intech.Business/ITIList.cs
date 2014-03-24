@@ -136,10 +136,11 @@ namespace Intech.Business
 
             public void Dispose()
             {
-                //nothing to do
+                // nothing to dispose in this case
+                // so don't do anything
             }
 
-            //implement old version of current
+            // implement old version of current
             object IEnumerator.Current
             {
                 get
@@ -148,6 +149,10 @@ namespace Intech.Business
                 }
             }
 
+            /// <summary>
+            /// Move to next element
+            /// </summary>
+            /// <returns>True if it's possible to go to next, else false</returns>
             public bool MoveNext()
             {
                 if (++_currentIndex >= _list.Count)
@@ -155,6 +160,9 @@ namespace Intech.Business
                 return true;
             }
 
+            /// <summary>
+            /// Useless to implement this
+            /// </summary>
             public void Reset()
             {
                 throw new NotSupportedException();

@@ -166,7 +166,6 @@ namespace Intech.Business.Tests
             Console.WriteLine("Ratio : " + naiveStringBuildTime / betterStringBuildTime);
         }
 
-
         [Test]
         public void BuildStringComplexityTest()
         {
@@ -193,7 +192,7 @@ namespace Intech.Business.Tests
         /// <summary>
         /// Measure the time taken to build a string 
         /// </summary>
-        /// <param name="buildingMethod">A building function to use</param>
+        /// <param name="buildingMethod">A building function used to build the string</param>
         /// <param name="testCount">Number of times the test has to be executed</param>
         /// <param name="count">Number of times the pattern has to be appended</param>
         /// <param name="pattern">The pattern used</param>

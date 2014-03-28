@@ -46,7 +46,7 @@ namespace Intech.Business
         {
             for (int i = 0; i < _count; i++)
             {
-                if (_array[i].Equals(element))
+                if (EqualityComparer<T>.Default.Equals(element, _array[i]))
                     return i;
             }
             return -1;
@@ -83,6 +83,22 @@ namespace Intech.Business
             Array.Copy(_array, index, newOne, index + 1, _count - index);
             _array = newOne;
             _count++;
+        }
+
+        /// <summary>
+        /// Removes an element
+        /// </summary>
+        /// <param name="value">Value to remove</param>
+        /// <returns>True if element has been removed, else false</returns>
+        public bool Remove(T value)
+        {
+            int idx = IndexOf(value);
+            if (idx >= 0)
+            {
+                RemoveAt(idx);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

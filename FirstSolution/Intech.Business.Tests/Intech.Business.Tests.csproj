@@ -48,6 +48,7 @@
     <Compile Include="ITIListTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestHelpers.cs" />
+    <Compile Include="EqualityTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Intech.Business\Intech.Business.csproj">

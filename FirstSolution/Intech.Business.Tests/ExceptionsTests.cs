@@ -149,6 +149,7 @@ namespace Intech.Business.Tests
         // Compare a "naive" string build (with concatenation) with a 
         // "better" String build (with a string builder)
         [Test]
+        [Explicit]
         public void BuildStringPerformanceTest()
         {
             //number of times pattern is appended
@@ -167,6 +168,7 @@ namespace Intech.Business.Tests
         }
 
         [Test]
+        [Explicit]
         public void BuildStringComplexityTest()
         {
             int count = 1000;

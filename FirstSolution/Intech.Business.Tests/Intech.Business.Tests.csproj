@@ -45,6 +45,7 @@
     <Compile Include="ExceptionsTests.cs" />
     <Compile Include="FileProcessorTests.cs" />
     <Compile Include="FromDelegateToLambdaTests.cs" />
+    <Compile Include="ITIDictionnaryTests.cs" />
     <Compile Include="ITIListTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestHelpers.cs" />

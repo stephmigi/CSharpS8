@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="FileHelpers.cs" />
     <Compile Include="FileProcessor.cs" />
+    <Compile Include="ITIDictionary.cs" />
     <Compile Include="ITIList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FileProcessorResult.cs" />

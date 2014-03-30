@@ -132,7 +132,7 @@ namespace Intech.Business.Tests
             // to have different strings with the same contents :
 
             // nope, compiler will resolve the concat
-            string x1 = "Alb + ert";
+            //string x1 = "Alb + ert";
 
             // TODO : why bugged?
             //Assert.That(ReferenceEquals(x1, s1));

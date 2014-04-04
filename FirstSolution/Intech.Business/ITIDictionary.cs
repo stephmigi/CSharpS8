@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace Intech.Business
 {
-    public class ITIDictionary <TKey, TValue>
+    public class ITIDictionary <TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
         private int _count;
         Bucket[] _buckets;
         static readonly int[] _primeNumbers = new int[]{ 11, 23, 47, 97, 199, 397, 809 };
-        IDicStrat<TKey> _strategy;
+        IEqualityComparer<TKey> _strategy;
 
         private class Bucket
         {
@@ -38,39 +38,24 @@ namespace Intech.Business
         public ITIDictionary()
         {
             _buckets = new Bucket[11];
-            _strategy = new DefaultStrategy();
+            _strategy = EqualityComparer<TKey>.Default;
         }
 
-        public ITIDictionary(IDicStrat<TKey> strategy)
+        public ITIDictionary(IEqualityComparer<TKey> strategy)
         {
             if (strategy == null) throw new ArgumentException();
             _buckets = new Bucket[11];
             _strategy = strategy;
         }
 
-        private void Grow()
-        {
-            int newCapacity = _primeNumbers[Array.IndexOf(_primeNumbers, _buckets.Length) + 1];
-            Bucket[] newBuckets = new Bucket[newCapacity];
-
-            for (int i = 0; i < _buckets.Length; i++)
-            {
-                Bucket b = _buckets[i];
-                while (b != null)
-                {
-                    int newSlot = Math.Abs(_strategy.ComputeHashCode(b.Key) % newBuckets.Length);
-                    var oldNext = b.Next;
-                    b.Next = newBuckets[newSlot];
-                    newBuckets[newSlot] = b;
-                    b = oldNext;
-                }
-            }
-            _buckets = newBuckets;
-        }
-
+        /// <summary>
+        /// Removes an element from the dictionnary
+        /// </summary>
+        /// <param name="key">The key of the element to remove</param>
+        /// <returns></returns>
         public bool Remove(TKey key)
         {
-            int slot = Math.Abs(_strategy.ComputeHashCode(key) % _buckets.Length);
+            int slot = Math.Abs(_strategy.GetHashCode(key) % _buckets.Length);
             Bucket b = _buckets[slot];
             if (b == null)
             {
@@ -81,7 +66,7 @@ namespace Intech.Business
                 Bucket previous = null;
                 while(b != null)
                 {
-                    if (_strategy.IsItEqual(b.Key, key))
+                    if (_strategy.Equals(b.Key, key))
                     {
                         if (previous != null)
                         {
@@ -102,14 +87,64 @@ namespace Intech.Business
             }
         }
 
+        /// <summary>
+        /// Adds an element to the dictionnary
+        /// </summary>
+        /// <param name="key">The key to add</param>
+        /// <param name="value">The associated value</param>
         public void Add(TKey key, TValue value)
         {
             AddOrReplace(key, value, true);
         }
 
+        /// <summary>
+        /// Tries to get a value from the dictionnary
+        /// </summary>
+        /// <param name="key">The key to look for</param>
+        /// <param name="value">The value if found</param>
+        /// <returns>True if found else false</returns>
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            value = default(TValue);
+            int hash = _strategy.GetHashCode(key);
+            int slot = Math.Abs(hash % _buckets.Length);
+            Bucket b = _buckets[slot];
+
+            while (b != null)
+            {
+                if (_strategy.Equals(b.Key, key))
+                {
+                    value = b.Value;
+                    return true;
+                }
+                b = b.Next;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Get a value based on a key
+        /// </summary>
+        /// <param name="key">The key</param>
+        /// <returns>The given value</returns>
+        public TValue this[TKey key]
+        {
+            get
+            {
+                TValue value;
+                if (!TryGetValue(key, out value))
+                    throw new KeyNotFoundException();
+                return value;
+            }
+            set
+            {
+                AddOrReplace(key, value, false);
+            }
+        }
+
         private void AddOrReplace(TKey key, TValue value, bool isAdd)
         {
-            int hash = _strategy.ComputeHashCode(key);
+            int hash = _strategy.GetHashCode(key);
             int slot = Math.Abs(hash % _buckets.Length);
             Bucket b = _buckets[slot];
 
@@ -121,7 +156,7 @@ namespace Intech.Business
             {
                 do
                 {
-                    if (_strategy.IsItEqual(b.Key, key))
+                    if (_strategy.Equals(b.Key, key))
                     {
                         if (isAdd)
                             throw new InvalidOperationException("Can't add existing key.");
@@ -153,65 +188,24 @@ namespace Intech.Business
             return b;
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        private void Grow()
         {
-            value = default(TValue);
-            int hash = _strategy.ComputeHashCode(key);
-            int slot = Math.Abs(hash % _buckets.Length);
-            Bucket b = _buckets[slot];
+            int newCapacity = _primeNumbers[Array.IndexOf(_primeNumbers, _buckets.Length) + 1];
+            Bucket[] newBuckets = new Bucket[newCapacity];
 
-            while (b != null)
+            for (int i = 0; i < _buckets.Length; i++)
             {
-                if (_strategy.IsItEqual(b.Key, key))
+                Bucket b = _buckets[i];
+                while (b != null)
                 {
-                    value = b.Value;
-                    return true;
+                    int newSlot = Math.Abs(_strategy.GetHashCode(b.Key) % newBuckets.Length);
+                    var oldNext = b.Next;
+                    b.Next = newBuckets[newSlot];
+                    newBuckets[newSlot] = b;
+                    b = oldNext;
                 }
-                b = b.Next;
             }
-            return false;
+            _buckets = newBuckets;
         }
-
-        /// <summary>
-        /// Get a value based on a key
-        /// </summary>
-        /// <param name="key">The key</param>
-        /// <returns>The given value</returns>
-        public TValue this[TKey key]
-        {
-            get
-            {
-                TValue value;
-                if (!TryGetValue(key, out value))
-                    throw new KeyNotFoundException();
-                return value;
-            }
-            set
-            {
-                AddOrReplace(key, value, false);
-            }
-        }
-        
-        /// <summary>
-        /// A default strategy
-        /// </summary>
-        private class DefaultStrategy : IDicStrat<TKey>
-        { 
-            public int ComputeHashCode(TKey key)
-            {
- 	            return key.GetHashCode();
-            }
-
-            public bool IsItEqual(TKey key1, TKey key2)
-            {
-                return EqualityComparer<TKey>.Default.Equals(key1, key2);
-            }
-        }
-    }
-
-    public interface IDicStrat<T>
-    {
-        int ComputeHashCode(T key);
-        bool IsItEqual(T key1, T key2);
     }
 }

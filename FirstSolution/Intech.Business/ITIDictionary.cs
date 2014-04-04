@@ -8,10 +8,40 @@ namespace Intech.Business
 {
     public class ITIDictionary <TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
     {
+        #region properties
+
         private int _count;
-        Bucket[] _buckets;
-        static readonly int[] _primeNumbers = new int[]{ 11, 23, 47, 97, 199, 397, 809 };
-        IEqualityComparer<TKey> _strategy;
+        private Bucket[] _buckets;
+        private static readonly int[] _primeNumbers = new int[]{ 11, 23, 47, 97, 199, 397, 809 };
+        private IEqualityComparer<TKey> _strategy;
+
+        public int Count
+        {
+            get
+            {
+                return _count;
+            }
+        }
+
+        public IEnumerable<TKey> Keys
+        {
+            get
+            {
+                return new EKeys(this);
+            }
+        }
+
+        public IEnumerable<TValue> Values
+        {
+            get
+            {
+                return new EValues(this);
+            }
+        }
+
+        #endregion
+
+        #region Bucket class 
 
         private class Bucket
         {
@@ -27,13 +57,9 @@ namespace Intech.Business
             }
         }
 
-        public int Count
-        {
-            get
-            {
-                return _count;
-            }
-        }
+        #endregion
+
+        #region constructors
 
         public ITIDictionary()
         {
@@ -47,6 +73,10 @@ namespace Intech.Business
             _buckets = new Bucket[11];
             _strategy = strategy;
         }
+
+        #endregion
+
+        #region public methods
 
         /// <summary>
         /// Removes an element from the dictionnary
@@ -142,6 +172,10 @@ namespace Intech.Business
             }
         }
 
+        #endregion
+
+        #region private methods
+
         private void AddOrReplace(TKey key, TValue value, bool isAdd)
         {
             int hash = _strategy.GetHashCode(key);
@@ -207,5 +241,161 @@ namespace Intech.Business
             }
             _buckets = newBuckets;
         }
+
+        #endregion
+
+        #region IEnumerable implementation
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            return new ITIDictionaryFullEnumerator(this);
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
+
+        class EBase
+        {
+            protected readonly ITIDictionary<TKey, TValue> _dictionary;
+            Bucket currentBucket;
+            int currentSlot;
+
+            public EBase(ITIDictionary<TKey, TValue> dictionary)
+            {
+                _dictionary = dictionary;
+                currentSlot = -1;
+                currentBucket = null;
+            }
+
+            protected Bucket CurrentBucket
+            {
+                get
+                {
+                    if (currentBucket == null)
+                        throw new InvalidOperationException("Movenext must have been called first !");
+                    return currentBucket;
+                }
+            }
+
+            public bool MoveNext()
+            {
+                if (currentBucket != null)
+                    currentBucket = currentBucket.Next;
+
+                while (currentBucket == null)
+                {
+                    ++currentSlot;
+                    if (currentSlot >= _dictionary._buckets.Length)
+                        return false;
+                    currentBucket = _dictionary._buckets[currentSlot];
+                }
+                return true;
+            }
+
+            public void Reset()
+            {
+                //nothing
+            }
+
+            public void Dispose()
+            {
+                // nothing
+            }
+        }
+
+        class ITIDictionaryFullEnumerator : EBase, IEnumerator<KeyValuePair<TKey, TValue>>
+        {
+            public ITIDictionaryFullEnumerator(ITIDictionary<TKey, TValue> dictionary) : base(dictionary)
+            {
+            }
+
+            public KeyValuePair<TKey, TValue> Current
+            {
+                get
+                {
+                    return new KeyValuePair<TKey, TValue>(CurrentBucket.Key, CurrentBucket.Value);
+                }
+            }
+
+            object System.Collections.IEnumerator.Current
+            {
+                get
+                {
+                    return Current;
+                }
+            }
+        }
+
+        class EValues : EBase, IEnumerator<TValue>, IEnumerable<TValue>
+        {
+            public EValues(ITIDictionary<TKey, TValue> dic)
+                : base(dic)
+            {
+
+            }
+            public TValue Current
+            {
+                get
+                {
+                    return CurrentBucket.Value;
+                }
+            }
+
+            object System.Collections.IEnumerator.Current
+            {
+                get
+                {
+                    return Current;
+                }
+            }
+
+            public IEnumerator<TValue> GetEnumerator()
+            {
+                return new EValues(_dictionary);
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+        class EKeys : EBase, IEnumerator<TKey>, IEnumerable<TKey>
+        {
+            public EKeys(ITIDictionary<TKey, TValue> dic)
+                : base(dic)
+            {
+
+            }
+            public TKey Current
+            {
+                get
+                {
+                    return CurrentBucket.Key;
+                }
+            }
+
+            object System.Collections.IEnumerator.Current
+            {
+                get
+                {
+                    return Current;
+                }
+            }
+
+            public IEnumerator<TKey> GetEnumerator()
+            {
+                return this;
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return new EValues(_dictionary);
+            }
+        }
+
+        #endregion
     }
 }

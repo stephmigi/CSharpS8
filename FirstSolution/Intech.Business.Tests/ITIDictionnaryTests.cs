@@ -19,6 +19,16 @@ namespace Intech.Business.Tests
             Assert.That(dic["Paul"] == 435);
 
             Assert.That(dic["paul"] == 435);
+
+            foreach (KeyValuePair<string, int> pair in dic)
+            {
+                Console.WriteLine(pair.Key + " - " + pair.Value);
+            }
+
+            foreach (var value in dic.Values)
+            {
+                Console.WriteLine(value);
+            }
         }
     }
 }
